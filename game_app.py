@@ -231,6 +231,9 @@ class BabyGame:
             self.sound_factory.key_sound(event.key).play()
 
     def handle_click(self, pos, button):
+        if button not in (1, 3):
+            return
+
         self.total_interactions += 1
         x, y = pos
         popped = False

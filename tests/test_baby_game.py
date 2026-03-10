@@ -182,6 +182,82 @@ def test_clicking_bubble_plays_name_then_animal_sound(monkeypatch):
     assert game.captured_overlay == "overlay"
 
 
+def test_right_click_keeps_mouse_feedback(monkeypatch):
+    played = []
+    queued = []
+
+    class FakeChannel:
+        def queue(self, sound):
+            queued.append(sound.name)
+
+    class FakeSound:
+        def __init__(self, name):
+            self.name = name
+
+        def play(self):
+            played.append(self.name)
+            if self.name == "name":
+                return FakeChannel()
+            return None
+
+    class FakeBubble:
+        popped = False
+        animal = {"label": "Kitty", "name": "Cat"}
+
+        def contains(self, x, y):
+            return True
+
+        def pop(self):
+            self.popped = True
+
+    game = make_game()
+    game.bubbles = [FakeBubble()]
+    game.font_huge = object()
+    game.font_large = object()
+    game.font_medium = object()
+    game.floating_chars = []
+    game.spawn_firework = lambda *args, **kwargs: None
+    game.total_interactions = 0
+    game.animal_assets = object()
+    game.screen_w = 1280
+    game.screen_h = 720
+    game.sound_factory = SimpleNamespace(
+        name_sound=lambda animal: FakeSound("name"),
+        animal_sound=lambda animal: FakeSound("animal"),
+        click_sound=lambda: FakeSound("click"),
+    )
+
+    monkeypatch.setattr(game_app, "FloatingChar", lambda *args, **kwargs: object())
+    monkeypatch.setattr(game_app, "CapturedAnimalCelebration", lambda *args, **kwargs: "overlay")
+
+    game.handle_click((100, 100), 3)
+
+    assert played == ["name"]
+    assert queued == ["animal"]
+    assert game.captured_overlay == "overlay"
+    assert game.total_interactions == 1
+
+
+def test_mouse_wheel_click_has_no_feedback(monkeypatch):
+    game = make_game()
+    game.bubbles = []
+    game.floating_chars = []
+    game.particles = []
+    game.total_interactions = 0
+    game.spawn_firework = lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not spawn"))
+    game.sound_factory = SimpleNamespace(
+        click_sound=lambda: (_ for _ in ()).throw(AssertionError("should not play")),
+    )
+
+    monkeypatch.setattr(game_app.random, "random", lambda: (_ for _ in ()).throw(AssertionError("should not randomize")))
+
+    game.handle_click((100, 100), 2)
+
+    assert game.total_interactions == 0
+    assert game.floating_chars == []
+    assert game.particles == []
+
+
 def test_letter_key_shows_large_character_animation(monkeypatch):
     floating_calls = []
     key_sound_calls = []

@@ -8,6 +8,7 @@ echo "  Baby Keyboard & Mouse Game"
 echo "========================================="
 echo ""
 echo "  Starting fullscreen game..."
+echo "  Debug mode: python3 baby_game.py --debug"
 echo "  Exit: Hold Ctrl + Shift + Escape for 3 seconds"
 echo ""
 python3 baby_game.py

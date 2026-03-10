@@ -12,23 +12,32 @@ from game_entities import Airplane, Bubble, CapturedAnimalCelebration, FloatingC
 
 
 class BabyGame:
-    def __init__(self):
+    def __init__(self, debug_mode=False):
         os.environ["SDL_VIDEO_CENTERED"] = "1"
         pygame.init()
         pygame.mixer.init(frequency=22050, size=-16, channels=1, buffer=512)
+        self.debug_mode = debug_mode
 
         info = pygame.display.Info()
         self.screen_w = info.current_w
         self.screen_h = info.current_h
 
-        display_flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
-        self.screen = pygame.display.set_mode((self.screen_w, self.screen_h), display_flags)
+        if self.debug_mode:
+            window_w = min(1280, self.screen_w)
+            window_h = min(800, self.screen_h)
+            display_flags = pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
+            self.screen = pygame.display.set_mode((window_w, window_h), display_flags)
+            self.screen_w = window_w
+            self.screen_h = window_h
+        else:
+            display_flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
+            self.screen = pygame.display.set_mode((self.screen_w, self.screen_h), display_flags)
         pygame.display.set_caption("Baby Game")
 
-        pygame.mouse.set_visible(False)
-        pygame.event.set_grab(True)
+        pygame.mouse.set_visible(self.debug_mode)
+        pygame.event.set_grab(not self.debug_mode)
         if hasattr(pygame.event, "set_keyboard_grab"):
-            pygame.event.set_keyboard_grab(True)
+            pygame.event.set_keyboard_grab(not self.debug_mode)
 
         self.display_font_name = pick_display_font()
         self.font_huge = pygame.font.SysFont(self.display_font_name, 160, bold=True)
@@ -427,7 +436,8 @@ class BabyGame:
             if self.captured_overlay is not None:
                 self.captured_overlay.draw(self.screen)
 
-            self.draw_custom_cursor(pygame.mouse.get_pos())
+            if not self.debug_mode:
+                self.draw_custom_cursor(pygame.mouse.get_pos())
             pygame.display.flip()
             self.clock.tick(FPS)
 

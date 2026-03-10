@@ -127,6 +127,65 @@ def test_init_enables_event_and_keyboard_grab(monkeypatch):
     assert keyboard_grab_calls == [True]
 
 
+def test_debug_mode_uses_windowed_display_without_grab(monkeypatch):
+    set_mode_calls = []
+    grab_calls = []
+    keyboard_grab_calls = []
+    mouse_visible_calls = []
+
+    monkeypatch.setattr(game_app.pygame, "init", lambda: None)
+    monkeypatch.setattr(game_app.pygame.mixer, "init", lambda **kwargs: None)
+    monkeypatch.setattr(
+        game_app.pygame.display,
+        "Info",
+        lambda: SimpleNamespace(current_w=1440, current_h=900),
+    )
+    monkeypatch.setattr(
+        game_app.pygame.display,
+        "set_mode",
+        lambda size, flags: set_mode_calls.append((size, flags)) or object(),
+    )
+    monkeypatch.setattr(game_app.pygame.display, "set_caption", lambda title: None)
+    monkeypatch.setattr(
+        game_app.pygame.mouse,
+        "set_visible",
+        lambda visible: mouse_visible_calls.append(visible),
+    )
+    monkeypatch.setattr(
+        game_app.pygame.event,
+        "set_grab",
+        lambda enabled: grab_calls.append(enabled),
+    )
+    monkeypatch.setattr(
+        game_app.pygame.event,
+        "set_keyboard_grab",
+        lambda enabled: keyboard_grab_calls.append(enabled),
+    )
+    monkeypatch.setattr(game_app.pygame.font, "SysFont", lambda *args, **kwargs: object())
+    monkeypatch.setattr(game_app, "SoundFactory", lambda: object())
+    monkeypatch.setattr(game_app, "AnimalAssetLibrary", lambda: object())
+    monkeypatch.setattr(game_app, "Airplane", lambda w, h: object())
+    monkeypatch.setattr(game_app, "MouseTrail", lambda: object())
+    monkeypatch.setattr(game_app, "Bubble", lambda *args, **kwargs: object())
+    monkeypatch.setattr(game_app.BabyGame, "_warm_up_assets", lambda self: None)
+
+    game = game_app.BabyGame(debug_mode=True)
+
+    assert game.debug_mode is True
+    assert game.screen_w == 1280
+    assert game.screen_h == 800
+    assert set_mode_calls == [((1280, 800), game_app.pygame.RESIZABLE | game_app.pygame.HWSURFACE | game_app.pygame.DOUBLEBUF)]
+    assert mouse_visible_calls == [True]
+    assert grab_calls == [False]
+    assert keyboard_grab_calls == [False]
+
+
+def test_parse_args_supports_debug_flag():
+    args = baby_game.parse_args(["--debug"])
+
+    assert args.debug is True
+
+
 def test_clicking_bubble_plays_name_then_animal_sound(monkeypatch):
     played = []
     queued = []

@@ -24,3 +24,11 @@ Assets live under `cartoon_animals_out/`.
 ```bash
 python3 baby_game.py
 ```
+
+Debug mode runs in a normal resizable window and does not grab keyboard or mouse input, so you can minimize and switch away easily.
+
+```bash
+python3 baby_game.py --debug
+```
+
+Or on macOS, double-click `start_debug.command`.

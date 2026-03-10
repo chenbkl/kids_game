@@ -3,6 +3,7 @@
 Compatibility entrypoint for the baby game.
 """
 
+import argparse
 import time
 
 import pygame
@@ -36,5 +37,16 @@ from game_entities import (
 )
 
 
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Baby Game")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Run in debug mode with a windowed display and normal window controls.",
+    )
+    return parser.parse_args(argv)
+
+
 if __name__ == "__main__":
-    BabyGame().run()
+    args = parse_args()
+    BabyGame(debug_mode=args.debug).run()
